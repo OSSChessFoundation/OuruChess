@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#151713">
+<title>Ouru Chess</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="mast"><a class="brand" href="./"><img src="pieces/wR.svg" alt="">Ouru Chess</a><button id="open-tutorial" type="button">How to play</button></header>
+<main class="layout">
+<section class="table" aria-label="Chess table">
+<div class="player" id="top"></div>
+<div class="frame"><div id="board" class="board" aria-label="Chessboard"></div></div>
+<div class="player" id="bottom"></div>
+</section>
+<aside class="panel">
+<div class="intro"><h1>Play chess</h1><p id="mode-label">Two players, one board.</p></div>
+<div class="turn" role="status"><i id="indicator"></i><div><strong id="status"></strong><small id="detail"></small></div></div>
+<section class="history"><h2>Moves <span id="count">0</span></h2><div id="moves" class="moves"></div></section>
+<div class="controls"><button id="undo">Undo move</button><button id="flip">Flip board</button><button id="new" class="primary">New game</button><button id="show-result" hidden>Game result</button></div>
+</aside>
+</main>
+<footer>Piece artwork by <a href="https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces/Standard_transparent">Colin M. L. Burnett</a> · <a href="pieces/LICENSE.txt">GPL v2+</a></footer>
+<dialog id="promotion"><form method="dialog"><h2>Promote pawn</h2><div id="choices"></div><button value="cancel">Cancel</button></form></dialog>
+<dialog id="restart"><form method="dialog"><h2>Start a new game?</h2><p>This clears the current board and move history.</p><div class="dialog-actions"><button value="cancel">Cancel</button><button class="primary" value="reset">New game</button></div></form></dialog>
+<dialog id="tutorial" aria-labelledby="tutorial-title">
+  <div class="tutorial-head">
+    <h2 id="tutorial-title">How to play chess</h2>
+    <form method="dialog"><button type="submit" autofocus>Close</button></form>
+  </div>
+  <div class="tutorial-body">
+    <section aria-labelledby="first-move">
+      <h3 id="first-move">Make your first move</h3>
+      <p>White goes first, then players take turns. Select one of your pieces to see its legal moves, then select a highlighted square. Landing on an opponent’s piece captures it. Most pieces stop when they reach another piece. The knight can jump over pieces.</p>
+    </section>
+    <section aria-labelledby="piece-moves">
+      <h3 id="piece-moves">How the pieces move</h3>
+      <dl class="piece-guide">
+        <div><img src="pieces/wK.svg" alt=""><dt>King</dt><dd>Moves one square in any direction. It must stay out of attack.</dd></div>
+        <div><img src="pieces/wQ.svg" alt=""><dt>Queen</dt><dd>Moves any number of open squares straight or diagonally.</dd></div>
+        <div><img src="pieces/wR.svg" alt=""><dt>Rook</dt><dd>Moves any number of open squares horizontally or vertically.</dd></div>
+        <div><img src="pieces/wB.svg" alt=""><dt>Bishop</dt><dd>Moves any number of open squares diagonally.</dd></div>
+        <div><img src="pieces/wN.svg" alt=""><dt>Knight</dt><dd>Jumps in an L shape, two squares one way and one to the side.</dd></div>
+        <div><img src="pieces/wP.svg" alt=""><dt>Pawn</dt><dd>Moves one square straight forward, or two from its starting square if both are clear. Captures one square diagonally forward.</dd></div>
+      </dl>
+    </section>
+    <section aria-labelledby="win-game">
+      <h3 id="win-game">Check and checkmate</h3>
+      <p><strong>Check</strong> means your king is under attack. You must escape by moving the king, capturing the attacker, or blocking the attack when possible. If your king is in check and you have no legal move, that’s <strong>checkmate</strong> and your opponent wins. If you have no legal move and your king is safe, that’s <strong>stalemate</strong>, a draw.</p>
+    </section>
+    <section aria-labelledby="special-moves">
+      <h3 id="special-moves">Special moves</h3>
+      <ul>
+        <li><strong>Castling.</strong> Move the king two squares toward a rook. The rook moves to the square the king crossed. Both pieces must be on their starting squares and have never moved. The squares between them must be empty, and the king can’t castle out of, through, or into check.</li>
+        <li><strong>Promotion.</strong> When a pawn reaches the far edge of the board, choose a queen, rook, bishop, or knight.</li>
+        <li><strong>En passant.</strong> If an enemy pawn moves two squares from its starting square and lands beside your pawn, you can capture it as if it had moved one square. You have to do it on your very next move.</li>
+      </ul>
+    </section>
+  </div>
+</dialog>
+<dialog id="result-dialog" aria-labelledby="result-title">
+  <h2 id="result-title"></h2>
+  <p id="result-reason"></p>
+  <div class="result-actions">
+    <button id="again-local" class="primary">Play Again</button>
+    <button id="review-game">Review Game</button>
+  </div>
+  <form method="dialog"><button type="submit">Close</button></form>
+</dialog>
+<dialog id="review-dialog" aria-labelledby="review-title">
+  <div class="review-head">
+    <h2 id="review-title">Review Game</h2>
+    <form method="dialog"><button type="submit">Close</button></form>
+  </div>
+  <div class="review-position">
+    <div id="review-board" class="board" aria-label="Review position"></div>
+    <div id="review-arrow" class="move-arrow" aria-hidden="true" hidden></div>
+    <div id="review-best-arrow" class="move-arrow" aria-hidden="true" hidden></div>
+  </div>
+  <p id="review-move"></p>
+  <div class="review-grade"><strong id="review-grade" role="status"></strong><button id="review-best" type="button" aria-pressed="false" hidden>Show best move</button></div>
+  <p id="review-analysis-status"></p>
+  <div class="review-controls">
+    <button id="review-prev" aria-label="Previous move">Previous</button>
+    <button id="review-next" aria-label="Next move">Next</button>
+  </div>
+  <p class="engine-credit">Powered by Stockfish · <a href="https://github.com/nmrugg/stockfish.js/tree/v19.0.1">Source</a> · <a href="engine/LICENSE.txt">GPL v3</a></p>
+</dialog>
+<script type="module" src="app.js"></script>
+</body>
+</html>
