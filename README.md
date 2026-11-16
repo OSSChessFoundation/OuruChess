@@ -6,7 +6,7 @@ Play chess locally, create an invite room, or join Quick Match. The site also in
 
 Open **Settings → Pages**. Choose **Deploy from a branch**, select **main** and **/docs**, then click **Save**.
 
-The site and custom apps use the same public matchmaking backend. See the [API documentation](https://ouru-chess-api.mmo0216.chatgpt.site/) for endpoints, example code, room invites, and move grading in your own client.
+The site and custom apps use the same public matchmaking backend. See the [API documentation](https://chess-api.mmo0216.chatgpt.site/) for endpoints, example code, room invites, and move grading in your own client.
 
 ## Run locally
 
