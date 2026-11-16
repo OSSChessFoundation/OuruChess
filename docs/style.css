@@ -64,7 +64,7 @@
 @media(max-width:480px){.mast .brand{font-size:19px;gap:4px}.brand img{width:24px;height:24px}.mast-actions button{min-height:32px;padding:4px 7px;font-size:11px}#analysis-form .dialog-actions{flex-wrap:wrap}}
 
 dialog.full-screen#tutorial,dialog.full-screen#analysis-dialog,dialog.full-screen#review-dialog{
-  position:fixed;inset:0;margin:0;width:100%;height:100dvh;max-width:none;max-height:none;padding:0;
+  position:fixed;inset:0;margin:0;width:100vw;height:100dvh;max-width:none;max-height:none;padding:0;
   border:0;border-radius:0;background:var(--bg);overflow:hidden
 }
 dialog.full-screen[open]{display:flex;flex-direction:column}
@@ -92,3 +92,5 @@ dialog.full-screen[open]{display:flex;flex-direction:column}
   .review-table{width:100%}
   .screen-header{gap:10px;padding:9px 12px}
 }
+
+body:has(dialog.full-screen[open]){overflow:hidden}
