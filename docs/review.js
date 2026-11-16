@@ -166,7 +166,9 @@ export function createGameReview() {
     render();
   });
   dialog.addEventListener('close', () => {
-    if (!dialog.open) stopGrading?.();
+    if (dialog.open) return;
+    stopGrading?.();
+    replay.onBack?.();
   });
   $('review-submit').addEventListener('click', async () => {
     const current = revision;
@@ -211,7 +213,7 @@ export function createGameReview() {
       selected = null;
       variation = outcome.moves.length ? null : new Chess(outcome.initialFen);
       marks.clear();
-      $('review-title').textContent = outcome.study ? 'Analysis Board' : 'Review Game';
+      $('review-title').textContent = outcome.study ? 'Analysis Board' : 'Game Review';
       showBest = false;
       analysisError = '';
       const key = outcome.key + ':' + outcome.moves.map(move => move.san).join(' ');

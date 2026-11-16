@@ -488,6 +488,7 @@ function openAnalysis(text) {
     review.open({
       key: study.pgn(), moves, initialFen: moves[0]?.before || study.fen(),
       flipped: false, result: study.getHeaders().Result, study: true,
+      onBack: () => analysisDialog.showModal(),
     });
   } catch {
     analysisError.textContent = 'Enter a valid PGN with moves or a valid FEN position.';
@@ -501,7 +502,6 @@ get('open-analysis').addEventListener('click', () => {
   analysisDialog.showModal();
 });
 get('analysis-form').addEventListener('submit', event => {
-  if (event.submitter?.getAttribute('formmethod') === 'dialog') return;
   event.preventDefault();
   openAnalysis(analysisInput.value.trim());
 });
@@ -510,9 +510,11 @@ get('analysis-current').addEventListener('click', () => openAnalysis(game.pgn())
 
 get('open-tutorial').addEventListener('click', () => get('tutorial').showModal());
 get('show-result').addEventListener('click', showResult);
-get('tutorial').addEventListener('close', () => {
-  if (outcome && observedResult !== outcome.key) showResult();
-});
+for (const screen of [get('tutorial'), analysisDialog, get('review-dialog')]) {
+  screen.addEventListener('close', () => {
+    if (outcome && observedResult !== outcome.key) showResult();
+  });
+}
 for (const [id, action] of [['again-quick', 'quick'], ['again-friend', 'friend']]) {
   get(id).addEventListener('click', () => {
     if (!outcome || busy) return;

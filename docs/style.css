@@ -62,3 +62,33 @@
 #review-jump-label,#review-promotion-label{font-size:13px}
 #review-promotion{font-size:12px}
 @media(max-width:480px){.mast .brand{font-size:19px;gap:4px}.brand img{width:24px;height:24px}.mast-actions button{min-height:32px;padding:4px 7px;font-size:11px}#analysis-form .dialog-actions{flex-wrap:wrap}}
+
+dialog.full-screen#tutorial,dialog.full-screen#analysis-dialog,dialog.full-screen#review-dialog{
+  position:fixed;inset:0;margin:0;width:100%;height:100dvh;max-width:none;max-height:none;padding:0;
+  border:0;border-radius:0;background:var(--bg);overflow:hidden
+}
+dialog.full-screen[open]{display:flex;flex-direction:column}
+.screen-header{
+  flex:none;display:flex;align-items:center;gap:16px;padding:12px max(16px,calc((100% - 1180px)/2));
+  border-bottom:1px solid var(--line);background:var(--panel)
+}
+.screen-header h2{font-size:clamp(22px,3vw,32px)}
+.screen-header button{white-space:nowrap}
+.screen-content,.full-screen .tutorial-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+.full-screen .tutorial-body{width:min(100%,900px);margin:auto;padding:4px clamp(16px,4vw,32px) 28px}
+#analysis-dialog #analysis-form{max-width:780px;margin:0 auto;padding:clamp(20px,5vw,52px) clamp(16px,4vw,32px)}
+#analysis-dialog #analysis-input{min-height:clamp(180px,36dvh,420px)}
+#analysis-dialog .dialog-actions{flex-wrap:wrap}
+.review-layout{
+  width:min(100%,1180px);display:grid;grid-template-columns:minmax(0,1fr) minmax(245px,320px);
+  gap:clamp(16px,4vw,34px);align-items:start;margin:0 auto;padding:18px clamp(12px,3vw,24px) 28px
+}
+.review-table{width:min(100%,clamp(250px,calc(100dvh - 150px),760px));justify-self:center;min-width:0}
+.review-table .review-position{width:100%;margin:0}
+.review-panel{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.review-panel #review-move{margin-top:0}
+@media(max-width:720px){
+  .review-layout{grid-template-columns:minmax(0,1fr);max-width:620px;gap:14px}
+  .review-table{width:100%}
+  .screen-header{gap:10px;padding:9px 12px}
+}

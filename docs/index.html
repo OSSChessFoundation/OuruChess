@@ -37,11 +37,11 @@
 <dialog id="promotion"><form method="dialog"><h2>Promote pawn</h2><div id="choices"></div><button value="cancel">Cancel</button></form></dialog>
 <dialog id="leave"><form method="dialog"><h2>Resign this game?</h2><p>Your opponent will win the match.</p><div class="dialog-actions"><button value="cancel">Keep playing</button><button class="primary" value="resign">Resign</button></div></form></dialog>
 <dialog id="restart"><form method="dialog"><h2>Start a new game?</h2><p>This clears the current board and move history.</p><div class="dialog-actions"><button value="cancel">Cancel</button><button class="primary" value="reset">New game</button></div></form></dialog>
-<dialog id="tutorial" aria-labelledby="tutorial-title">
-  <div class="tutorial-head">
+<dialog id="tutorial" class="full-screen" aria-labelledby="tutorial-title">
+  <header class="screen-header">
+    <form method="dialog"><button type="submit" autofocus><span aria-hidden="true">←</span> Back</button></form>
     <h2 id="tutorial-title">How to play chess</h2>
-    <form method="dialog"><button type="submit" autofocus>Close</button></form>
-  </div>
+  </header>
   <div class="tutorial-body">
     <section aria-labelledby="first-move">
       <h3 id="first-move">Make your first move</h3>
@@ -82,8 +82,12 @@
   </div>
   <form method="dialog"><button type="submit">Close</button></form>
 </dialog>
-<dialog id="analysis-dialog" aria-labelledby="analysis-title">
-  <h2 id="analysis-title">Analysis Board</h2>
+<dialog id="analysis-dialog" class="full-screen" aria-labelledby="analysis-title">
+  <header class="screen-header">
+    <form method="dialog"><button type="submit" autofocus><span aria-hidden="true">←</span> Back</button></form>
+    <h2 id="analysis-title">Analysis Board</h2>
+  </header>
+  <div class="screen-content">
   <form id="analysis-form">
     <label for="analysis-input">Game PGN or position FEN</label>
     <textarea id="analysis-input" rows="5" maxlength="30000" placeholder="1. e4 e5 2. Nf3 Nc6"></textarea>
@@ -92,15 +96,18 @@
       <button type="submit" class="primary">Analyze</button>
       <button id="analysis-current" type="button" hidden>Review local game</button>
       <button id="analysis-empty" type="button">Start from initial position</button>
-      <button type="submit" formmethod="dialog">Close</button>
     </div>
   </form>
-</dialog>
-<dialog id="review-dialog" aria-labelledby="review-title">
-  <div class="review-head">
-    <h2 id="review-title">Review Game</h2>
-    <form method="dialog"><button type="submit">Close</button></form>
   </div>
+</dialog>
+<dialog id="review-dialog" class="full-screen" aria-labelledby="review-title">
+  <header class="screen-header">
+    <form method="dialog"><button type="submit" autofocus><span aria-hidden="true">←</span> Back</button></form>
+    <h2 id="review-title">Game Review</h2>
+  </header>
+  <div class="screen-content">
+  <div class="review-layout">
+  <div class="review-table">
   <div class="review-position">
     <div id="review-board" class="board" aria-label="Review position"></div>
     <div id="review-arrow" class="move-arrow" aria-hidden="true" hidden></div>
@@ -112,6 +119,8 @@
     <button id="clear-review" type="button" disabled>Clear marks</button>
     <button id="flip-review" type="button">Flip board</button>
   </div>
+  </div>
+  <aside class="review-panel" aria-label="Move review controls">
   <p id="review-move"></p>
   <label id="review-jump-label" for="review-jump">Go to move</label>
   <select id="review-jump"></select>
@@ -132,6 +141,9 @@
   <p id="review-status" role="status"></p>
   <a id="review-link" rel="noopener noreferrer" target="_blank" hidden></a>
   <p class="engine-credit">Powered by Stockfish · <a href="https://github.com/nmrugg/stockfish.js/tree/v19.0.1">Source</a> · <a href="engine/LICENSE.txt">GPL v3</a></p>
+  </aside>
+  </div>
+  </div>
 </dialog>
 <script type="module" src="app.js"></script>
 </body>
