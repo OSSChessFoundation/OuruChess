@@ -95,7 +95,7 @@ export function gradeGame(moves, grades, onGrade, onError) {
           : await engine.evaluate(move.after);
         if (!active) break;
         grades[index] = classifyMove(move, before, after);
-        onGrade();
+        onGrade(index);
         before = after;
       }
     } catch (error) {

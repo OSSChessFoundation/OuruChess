@@ -1,6 +1,7 @@
 import { apiBase } from './api.js';
 import { Chess } from './chess.js';
 import { createGameReview } from './review.js';
+import { attachBoardMarks } from './board-marks.js';
 
 const game = new Chess();
 const names = { p: 'pawn', n: 'knight', b: 'bishop', r: 'rook', q: 'queen', k: 'king' };
@@ -20,6 +21,13 @@ let localPgn = '';
 const leave = get('leave');
 const resultDialog = get('result-dialog');
 const review = createGameReview();
+const liveMarks = attachBoardMarks({
+  board, layer: get('live-marks'), toggle: get('draw-live'),
+  clearButton: get('clear-live'), flipped: () => flipped,
+});
+const analysisDialog = get('analysis-dialog');
+const analysisInput = get('analysis-input');
+const analysisError = get('analysis-error');
 let outcome = null;
 let observedResult = null;
 const onlineKey = 'rook-board-online';
@@ -82,6 +90,7 @@ function orient() {
   for (const rank of ranks) {
     for (const file of files) board.append(squares.get(file + rank));
   }
+  liveMarks.render();
 }
 
 function movesFrom(square) {
@@ -274,6 +283,7 @@ restart.addEventListener('close', () => {
   if (restart.returnValue !== 'reset') return;
   game.reset();
   selected = null;
+  liveMarks.clear();
   save();
   render();
 });
@@ -301,12 +311,13 @@ function sessionSave(session) {
 }
 
 async function request(action, token, data = {}) {
-  const response = await fetch(apiBase + action, {
+  const options = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token, ...data }),
     signal: AbortSignal.timeout(8000),
-  });
+  };
+  const response = await fetch(apiBase + action, options);
   const result = await response.json();
   if (!response.ok) {
     const error = new Error(result.error || 'Online play is temporarily unavailable.');
@@ -328,7 +339,7 @@ function renderOnline(ended) {
   get('room-info').textContent = 'You play ' + colorName(online.color) + '.';
   get('invite-controls').hidden = !online.invite;
   if (online.invite) {
-    get('invite-link').value = location.origin + location.pathname + '#game=' + online.id + '&invite=' + online.invite;
+    get('invite-link').value = location.origin + '/#game=' + online.id + '&invite=' + online.invite;
   }
   const exit = get('exit-online');
   exit.disabled = busy;
@@ -342,6 +353,7 @@ function applyOnline(state, token) {
   online = { ...state, token };
   sessionSave({ id: state.id, token });
   if (entering) {
+    liveMarks.clear();
     flipped = state.color === 'b';
     orient();
   }
@@ -358,6 +370,7 @@ function resetOnline() {
   online = null;
   sessionSave(null);
   selected = null;
+  liveMarks.clear();
   flipped = localFlip;
   game.reset();
   if (localPgn) game.loadPgn(localPgn);
@@ -463,6 +476,37 @@ get('exit-online').addEventListener('click', () => {
 leave.addEventListener('close', () => {
   if (leave.returnValue === 'resign') updateOnline('resign', { version: online.version });
 });
+
+function openAnalysis(text) {
+  try {
+    const fenInput = /^[prnbqkPRNBQK1-8/]+\s+[wb](?:\s|$)/.test(text);
+    const study = fenInput ? new Chess(text) : new Chess();
+    if (text && !fenInput) study.loadPgn(text);
+    const moves = study.history({ verbose: true });
+    if (text && !fenInput && !moves.length) throw new Error('No moves');
+    analysisDialog.close();
+    review.open({
+      key: study.pgn(), moves, initialFen: moves[0]?.before || study.fen(),
+      flipped: false, result: study.getHeaders().Result, study: true,
+    });
+  } catch {
+    analysisError.textContent = 'Enter a valid PGN with moves or a valid FEN position.';
+    analysisError.hidden = false;
+  }
+}
+
+get('open-analysis').addEventListener('click', () => {
+  analysisError.hidden = true;
+  get('analysis-current').hidden = Boolean(online) || !game.history().length;
+  analysisDialog.showModal();
+});
+get('analysis-form').addEventListener('submit', event => {
+  if (event.submitter?.getAttribute('formmethod') === 'dialog') return;
+  event.preventDefault();
+  openAnalysis(analysisInput.value.trim());
+});
+get('analysis-empty').addEventListener('click', () => openAnalysis(''));
+get('analysis-current').addEventListener('click', () => openAnalysis(game.pgn()));
 
 get('open-tutorial').addEventListener('click', () => get('tutorial').showModal());
 get('show-result').addEventListener('click', showResult);

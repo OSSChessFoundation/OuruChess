@@ -43,3 +43,22 @@
 #review-grade[data-grade="Blunder"],#review-grade[data-grade="Mistake"]{color:#ffab97}
 #review-grade[data-grade="Brilliant"],#review-grade[data-grade="Great"],#review-grade[data-grade="Best Move"]{color:#a6dfa3}
 #review-analysis-status,.engine-credit{font-size:12px}
+
+.board-stage{position:relative}
+.board-marks{position:absolute;inset:0;pointer-events:none;z-index:2;overflow:hidden}
+.drawn-arrow{background:#ff9439d9}
+.square-mark{position:absolute;width:11%;aspect-ratio:1;border:3px solid #ff9439eb;border-radius:50%;transform:translate(-50%,-50%)}
+.mark-start{border-style:dashed}
+.mast-actions,.mark-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.mark-tools{margin-top:7px}
+.mast-actions button,.mark-tools button{border:1px solid #484d40;background:#2a2d25;color:var(--text);border-radius:7px;min-height:34px;padding:6px 10px;font-size:12px;font-weight:650}
+.mark-tools button[aria-pressed="true"]{background:var(--gold);color:#211d14}
+#analysis-dialog{width:min(485px,calc(100% - 24px))}
+#analysis-form{margin-top:12px}
+#analysis-input{display:block;width:100%;margin-top:6px;resize:vertical}
+#analysis-input,#review-jump,#review-promotion{color:var(--text);background:#151713;border:1px solid #484d40;border-radius:6px;padding:7px;font:inherit}
+#analysis-error{color:#ffab97}
+#review-jump{max-width:100%;margin:4px 0;font-size:13px}
+#review-jump-label,#review-promotion-label{font-size:13px}
+#review-promotion{font-size:12px}
+@media(max-width:480px){.mast .brand{font-size:19px;gap:4px}.brand img{width:24px;height:24px}.mast-actions button{min-height:32px;padding:4px 7px;font-size:11px}#analysis-form .dialog-actions{flex-wrap:wrap}}
