@@ -1,5 +1,6 @@
 import { apiBase } from './api.js';
 import { Chess } from './chess.js';
+import { startEngine } from './grading.js';
 import { createGameReview } from './review.js';
 import { attachBoardMarks } from './board-marks.js';
 
@@ -14,6 +15,10 @@ let selected = null;
 let pending = null;
 let flipped = false;
 let online = null;
+let bot = null;
+let botWork = null;
+const botLevels = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
+const botDialog = get('bot-dialog');
 let busy = false;
 let pollTimer;
 let localFlip = false;
@@ -47,7 +52,7 @@ try {
 }
 
 function save() {
-  if (online) return;
+  if (online || bot) return;
   localPgn = game.pgn();
   localFlip = flipped;
   try {
@@ -98,7 +103,7 @@ function movesFrom(square) {
 }
 
 function choose(square) {
-  if (game.isGameOver() || busy || (online && (!online.ready || online.resigned || game.turn() !== online.color))) return;
+  if (game.isGameOver() || busy || (bot && game.turn() !== bot.color) || (online && (!online.ready || online.resigned || game.turn() !== online.color))) return;
   const options = movesFrom(selected).filter(move => move.to === square);
   if (options.some(move => move.promotion)) {
     pending = { from: selected, to: square };
@@ -131,6 +136,60 @@ async function play(move) {
   save();
   render();
   squares.get(move.to).focus({ preventScroll: true });
+  scheduleBotMove();
+}
+
+function cancelBotMove() {
+  const work = botWork;
+  botWork = null;
+  if (!work) return;
+  clearTimeout(work.timer);
+  work.engine?.stop();
+}
+
+function scheduleBotMove() {
+  if (!bot || online || botWork || game.turn() === bot.color || game.isGameOver()) return;
+  const opponent = bot;
+  const fen = game.fen();
+  const work = {};
+  botWork = work;
+  work.timer = setTimeout(async () => {
+    const legal = game.moves({ verbose: true });
+    let move = legal[Math.floor(Math.random() * legal.length)];
+    try {
+      if (opponent.level !== 'easy') {
+        work.engine = startEngine();
+        const hard = opponent.level === 'hard';
+        await work.engine.ready(hard ? 20 : 5);
+        const best = await work.engine.bestMove(fen, hard ? 18000 : 3500);
+        move = legal.find(option => option.from + option.to + (option.promotion || '') === best) ?? move;
+      }
+    } catch {
+      // Keep the game playable if Stockfish cannot load.
+    } finally {
+      work.engine?.stop();
+    }
+    if (botWork !== work || bot !== opponent || online || game.fen() !== fen) return;
+    botWork = null;
+    if (move) {
+      game.move(move.san);
+      selected = null;
+      render();
+    }
+  }, 240);
+}
+
+function startBot(color, level) {
+  if (online || busy) return;
+  cancelBotMove();
+  bot = { color, level };
+  game.reset();
+  selected = null;
+  flipped = color === 'b';
+  liveMarks.clear();
+  orient();
+  render();
+  scheduleBotMove();
 }
 
 function render() {
@@ -192,12 +251,19 @@ function render() {
     title = colorName(online.resigned === 'w' ? 'b' : 'w') + ' wins';
     detail = colorName(online.resigned) + ' resigned';
   }
+  if (bot && !ended && turn !== bot.color) {
+    title = botLevels[bot.level] + ' bot is thinking';
+  }
   get('status').textContent = title;
   get('detail').textContent = detail;
   get('indicator').classList.toggle('black', (game.isCheckmate() ? turn === 'w' : turn === 'b'));
-  get('undo').disabled = Boolean(online) || !history.length;
+  get('undo').disabled = Boolean(online) || !history.length || (bot?.color === 'b' && history.length === 1);
   get('new').hidden = Boolean(online);
   renderOnline(ended);
+  get('bot-open').disabled = busy;
+  get('bot-exit').hidden = !bot;
+  get('bot-exit').disabled = busy;
+  if (bot) get('mode-label').textContent = 'You play ' + colorName(bot.color) + ' · ' + botLevels[bot.level] + ' bot';
   get('count').textContent = Math.ceil(history.length / 2);
 
   const list = get('moves');
@@ -236,8 +302,9 @@ function renderResult(ended, winner, detail, moves) {
     get('show-result').hidden = true;
     return;
   }
-  const title = !winner ? 'You drawed' : !online ? colorName(winner) + ' wins'
-    : online.color === winner ? 'You win' : 'You lost';
+  const player = online || bot;
+  const title = !winner ? 'You drawed' : !player ? colorName(winner) + ' wins'
+    : player.color === winner ? 'You win' : 'You lost';
   const reason = online?.resigned ? 'resignation' : ({
     Checkmate: 'checkmate',
     Stalemate: 'stalemate',
@@ -253,6 +320,7 @@ function renderResult(ended, winner, detail, moves) {
   get('result-title').textContent = title;
   get('result-reason').textContent = reason ? 'By ' + reason + '.' : '';
   get('review-game').disabled = !moves.length;
+  get('again-bot').hidden = !bot;
   get('show-result').hidden = false;
   if (observedResult !== outcome.key) showResult();
 }
@@ -263,7 +331,10 @@ promotion.addEventListener('close', () => {
   pending = null;
 });
 get('undo').addEventListener('click', () => {
+  if (bot && game.history().length === 1 && bot.color === 'b') return;
+  cancelBotMove();
   game.undo();
+  if (bot && game.turn() !== bot.color) game.undo();
   selected = null;
   save();
   render();
@@ -281,6 +352,10 @@ get('new').addEventListener('click', () => {
 });
 restart.addEventListener('close', () => {
   if (restart.returnValue !== 'reset') return;
+  if (bot) {
+    startBot(bot.color, bot.level);
+    return;
+  }
   game.reset();
   selected = null;
   liveMarks.clear();
@@ -350,6 +425,8 @@ function applyOnline(state, token) {
   if (online?.id === state.id && (state.version < online.version || (online.ready && !state.ready))) return;
   const entering = !online || online.id !== state.id;
   const changed = entering || online.version !== state.version || online.ready !== state.ready;
+  cancelBotMove();
+  bot = null;
   online = { ...state, token };
   sessionSave({ id: state.id, token });
   if (entering) {
@@ -507,6 +584,26 @@ get('analysis-form').addEventListener('submit', event => {
 });
 get('analysis-empty').addEventListener('click', () => openAnalysis(''));
 get('analysis-current').addEventListener('click', () => openAnalysis(game.pgn()));
+
+get('bot-open').addEventListener('click', () => {
+  if (online || busy) return;
+  botDialog.returnValue = 'cancel';
+  botDialog.showModal();
+});
+botDialog.addEventListener('close', () => {
+  if (botDialog.returnValue === 'play') startBot(get('bot-color').value, get('bot-level').value);
+});
+get('bot-exit').addEventListener('click', () => {
+  if (!bot || busy) return;
+  cancelBotMove();
+  bot = null;
+  resetOnline();
+});
+get('again-bot').addEventListener('click', () => {
+  if (!bot || busy) return;
+  resultDialog.close();
+  startBot(bot.color, bot.level);
+});
 
 get('open-tutorial').addEventListener('click', () => get('tutorial').showModal());
 get('show-result').addEventListener('click', showResult);

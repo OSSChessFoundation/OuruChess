@@ -21,6 +21,7 @@
 <div id="online-actions" class="online-actions">
   <button id="friend">Play a friend</button>
   <button id="quick" class="primary">Quick match</button>
+  <button id="bot-open" type="button">Play a bot</button>
 </div>
 <section id="online-room" hidden aria-label="Online match">
   <p id="room-info" role="status"></p>
@@ -30,10 +31,20 @@
 <p id="online-error" role="alert" hidden></p>
 <div class="turn" role="status"><i id="indicator"></i><div><strong id="status"></strong><small id="detail"></small></div></div>
 <section class="history"><h2>Moves <span id="count">0</span></h2><div id="moves" class="moves"></div></section>
-<div class="controls"><button id="undo">Undo move</button><button id="flip">Flip board</button><button id="new" class="primary">New game</button><button id="show-result" hidden>Game result</button></div>
+<div class="controls"><button id="undo">Undo move</button><button id="flip">Flip board</button><button id="new" class="primary">New game</button><button id="bot-exit" type="button" hidden>Back to local chess</button><button id="show-result" hidden>Game result</button></div>
 </aside>
 </main>
 <footer><a href="https://chess-api.mmo0216.chatgpt.site/">Developer API</a> · Piece artwork by <a href="https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces/Standard_transparent">Colin M. L. Burnett</a> · <a href="pieces/LICENSE.txt">GPL v2+</a></footer>
+<dialog id="bot-dialog" aria-labelledby="bot-title">
+  <h2 id="bot-title">Play a bot</h2>
+  <form id="bot-form" method="dialog">
+    <p><label for="bot-level">Difficulty</label>
+    <select id="bot-level"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select></p>
+    <p><label for="bot-color">Play as</label>
+    <select id="bot-color"><option value="w">White</option><option value="b">Black</option></select></p>
+    <div class="dialog-actions"><button value="cancel">Cancel</button><button class="primary" value="play">Start game</button></div>
+  </form>
+</dialog>
 <dialog id="promotion"><form method="dialog"><h2>Promote pawn</h2><div id="choices"></div><button value="cancel">Cancel</button></form></dialog>
 <dialog id="leave"><form method="dialog"><h2>Resign this game?</h2><p>Your opponent will win the match.</p><div class="dialog-actions"><button value="cancel">Keep playing</button><button class="primary" value="resign">Resign</button></div></form></dialog>
 <dialog id="restart"><form method="dialog"><h2>Start a new game?</h2><p>This clears the current board and move history.</p><div class="dialog-actions"><button value="cancel">Cancel</button><button class="primary" value="reset">New game</button></div></form></dialog>
@@ -78,6 +89,7 @@
   <div class="result-actions">
     <button id="again-quick" class="primary">Play Again (Quick Match)</button>
     <button id="again-friend">Play Again (Create Friend Room)</button>
+    <button id="again-bot" type="button" hidden>Rematch bot</button>
     <button id="review-game">Review Game</button>
   </div>
   <form method="dialog"><button type="submit">Close</button></form>

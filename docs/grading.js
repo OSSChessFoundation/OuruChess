@@ -3,7 +3,7 @@ import { Chess } from './chess.js';
 const material = { p: 1, n: 3, b: 3, r: 5, q: 9 };
 const enginePath = new URL('./engine/stockfish-19-lite-single.js', import.meta.url);
 
-function startEngine() {
+export function startEngine() {
   const worker = new Worker(enginePath);
   let pending;
   let failure;
@@ -39,10 +39,16 @@ function startEngine() {
   }
 
   return {
-    async ready() {
+    async ready(skill) {
       await ask('uci', 'uciok');
       worker.postMessage('setoption name Hash value 16');
+      if (skill !== undefined) worker.postMessage('setoption name Skill Level value ' + skill);
       await ask('isready', 'readyok');
+    },
+    async bestMove(fen, nodes) {
+      worker.postMessage('position fen ' + fen);
+      const line = await ask('go nodes ' + nodes, 'bestmove ');
+      return line.split(/\s+/)[1];
     },
     async evaluate(fen) {
       score = undefined;
