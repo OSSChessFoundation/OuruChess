@@ -1,3 +1,4 @@
+import { apiBase } from './api.js';
 import { Chess } from './chess.js';
 import { createGameReview } from './review.js';
 
@@ -11,10 +12,18 @@ const restart = get('restart');
 let selected = null;
 let pending = null;
 let flipped = false;
+let online = null;
+let busy = false;
+let pollTimer;
+let localFlip = false;
+let localPgn = '';
+const leave = get('leave');
 const resultDialog = get('result-dialog');
 const review = createGameReview();
 let outcome = null;
 let observedResult = null;
+const onlineKey = 'rook-board-online';
+const inviteArgs = new URLSearchParams(location.hash.slice(1));
 const squares = new Map();
 
 try {
@@ -22,12 +31,17 @@ try {
   if (saved) {
     game.loadPgn(saved.pgn);
     flipped = Boolean(saved.flipped);
+    localFlip = flipped;
+    localPgn = saved.pgn;
   }
 } catch {
   game.reset();
 }
 
 function save() {
+  if (online) return;
+  localPgn = game.pgn();
+  localFlip = flipped;
   try {
     localStorage.setItem('rook-board', JSON.stringify({ pgn: game.pgn(), flipped }));
   } catch {}
@@ -75,7 +89,7 @@ function movesFrom(square) {
 }
 
 function choose(square) {
-  if (game.isGameOver()) return;
+  if (game.isGameOver() || busy || (online && (!online.ready || online.resigned || game.turn() !== online.color))) return;
   const options = movesFrom(selected).filter(move => move.to === square);
   if (options.some(move => move.promotion)) {
     pending = { from: selected, to: square };
@@ -98,7 +112,11 @@ function choose(square) {
   render();
 }
 
-function play(move) {
+async function play(move) {
+  if (online) {
+    await updateOnline('move', { move, version: online.version });
+    return;
+  }
   game.move(move);
   selected = null;
   save();
@@ -111,7 +129,7 @@ function render() {
   const last = history.at(-1);
   const turn = game.turn();
   const checked = game.isCheck();
-  const ended = game.isGameOver();
+  const ended = game.isGameOver() || Boolean(online?.resigned);
   const legal = new Set(movesFrom(selected).map(move => move.to));
   const left = flipped ? 'h' : 'a';
   const bottom = flipped ? '8' : '1';
@@ -142,7 +160,7 @@ function render() {
 
   for (const [id, color] of [['top', flipped ? 'w' : 'b'], ['bottom', flipped ? 'b' : 'w']]) {
     const active = document.createElement('span');
-    active.textContent = !ended && turn === color ? 'To move' : '';
+    active.textContent = !ended && (!online || online.ready) && turn === color ? 'To move' : '';
     get(id).replaceChildren(artwork(color, 'k'), colorName(color), active);
   }
 
@@ -158,10 +176,19 @@ function render() {
     else if (game.isThreefoldRepetition()) detail = 'Threefold repetition';
     else detail = 'Fifty-move rule';
   }
+  if (online && !online.ready) {
+    title = online.mode === 'quick' ? 'Finding an opponent' : 'Waiting for your friend';
+    detail = online.mode === 'quick' ? 'Keep this tab open to stay in the queue' : 'Send the invite link to start';
+  } else if (online?.resigned) {
+    title = colorName(online.resigned === 'w' ? 'b' : 'w') + ' wins';
+    detail = colorName(online.resigned) + ' resigned';
+  }
   get('status').textContent = title;
   get('detail').textContent = detail;
   get('indicator').classList.toggle('black', (game.isCheckmate() ? turn === 'w' : turn === 'b'));
-  get('undo').disabled = !history.length;
+  get('undo').disabled = Boolean(online) || !history.length;
+  get('new').hidden = Boolean(online);
+  renderOnline(ended);
   get('count').textContent = Math.ceil(history.length / 2);
 
   const list = get('moves');
@@ -182,12 +209,13 @@ function render() {
     list.append(row);
   }
   list.scrollTop = list.scrollHeight;
-  const winner = game.isCheckmate() ? (turn === 'w' ? 'b' : 'w') : null;
+  const winner = online?.resigned ? (online.resigned === 'w' ? 'b' : 'w')
+    : game.isCheckmate() ? (turn === 'w' ? 'b' : 'w') : null;
   renderResult(ended, winner, detail, history);
 }
 
 function showResult() {
-  if (!outcome || document.querySelector('dialog[open]')) return;
+  if (!outcome || busy || document.querySelector('dialog[open]')) return;
   observedResult = outcome.key;
   resultDialog.showModal();
 }
@@ -199,8 +227,9 @@ function renderResult(ended, winner, detail, moves) {
     get('show-result').hidden = true;
     return;
   }
-  const title = winner ? colorName(winner) + ' wins' : 'Draw';
-  const reason = ({
+  const title = !winner ? 'You drawed' : !online ? colorName(winner) + ' wins'
+    : online.color === winner ? 'You win' : 'You lost';
+  const reason = online?.resigned ? 'resignation' : ({
     Checkmate: 'checkmate',
     Stalemate: 'stalemate',
     'Insufficient material': 'insufficient material',
@@ -208,7 +237,7 @@ function renderResult(ended, winner, detail, moves) {
     'Fifty-move rule': 'the fifty-move rule',
   })[detail];
   outcome = {
-    key: game.fen(),
+    key: online ? online.id + ':' + online.version : game.fen(),
     moves, flipped,
     result: winner === 'w' ? '1-0' : winner === 'b' ? '0-1' : '1/2-1/2',
   };
@@ -249,18 +278,204 @@ restart.addEventListener('close', () => {
   render();
 });
 
+function errorMessage(message = '') {
+  const box = get('online-error');
+  box.textContent = message;
+  box.hidden = !message;
+}
+
+function randomKey() {
+  return Array.from(crypto.getRandomValues(new Uint8Array(32)), byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+function sessionRead() {
+  try { return JSON.parse(sessionStorage.getItem(onlineKey) || 'null'); }
+  catch { return null; }
+}
+
+function sessionSave(session) {
+  try {
+    if (session) sessionStorage.setItem(onlineKey, JSON.stringify(session));
+    else sessionStorage.removeItem(onlineKey);
+  } catch {}
+}
+
+async function request(action, token, data = {}) {
+  const response = await fetch(apiBase + action, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, ...data }),
+    signal: AbortSignal.timeout(8000),
+  });
+  const result = await response.json();
+  if (!response.ok) {
+    const error = new Error(result.error || 'Online play is temporarily unavailable.');
+    error.status = response.status;
+    error.game = result.game;
+    throw error;
+  }
+  return result;
+}
+
+function renderOnline(ended) {
+  const room = get('online-room');
+  room.hidden = !online;
+  get('online-actions').hidden = Boolean(online);
+  get('friend').disabled = busy;
+  get('quick').disabled = busy;
+  get('mode-label').textContent = online ? (online.mode === 'quick' ? 'Quick match' : 'Friend match') : 'Two players, one board.';
+  if (!online) return;
+  get('room-info').textContent = 'You play ' + colorName(online.color) + '.';
+  get('invite-controls').hidden = !online.invite;
+  if (online.invite) {
+    get('invite-link').value = location.origin + location.pathname + '#game=' + online.id + '&invite=' + online.invite;
+  }
+  const exit = get('exit-online');
+  exit.disabled = busy;
+  exit.textContent = ended ? 'Back to local chess' : online.ready ? 'Resign' : 'Cancel';
+}
+
+function applyOnline(state, token) {
+  if (online?.id === state.id && (state.version < online.version || (online.ready && !state.ready))) return;
+  const entering = !online || online.id !== state.id;
+  const changed = entering || online.version !== state.version || online.ready !== state.ready;
+  online = { ...state, token };
+  sessionSave({ id: state.id, token });
+  if (entering) {
+    flipped = state.color === 'b';
+    orient();
+  }
+  if (changed) {
+    game.reset();
+    if (state.pgn) game.loadPgn(state.pgn);
+    selected = null;
+    render();
+  }
+}
+
+function resetOnline() {
+  clearTimeout(pollTimer);
+  online = null;
+  sessionSave(null);
+  selected = null;
+  flipped = localFlip;
+  game.reset();
+  if (localPgn) game.loadPgn(localPgn);
+  orient();
+  render();
+}
+
+function schedulePoll() {
+  clearTimeout(pollTimer);
+  if (!online || online.resigned || game.isGameOver()) return;
+  pollTimer = setTimeout(poll, 1200);
+}
+
+async function poll() {
+  if (!online) return;
+  if (busy) return schedulePoll();
+  const { token, id } = online;
+  try {
+    const result = await request('state', token, { id });
+    if (online?.id === id) {
+      applyOnline(result, token);
+      if (get('online-error').textContent === 'Connection interrupted. Reconnecting…') errorMessage();
+    }
+  } catch (error) {
+    if (online?.id !== id) return;
+    if (error.status === 404) {
+      resetOnline();
+      errorMessage('This match is no longer available.');
+      return;
+    }
+    errorMessage('Connection interrupted. Reconnecting…');
+  }
+  schedulePoll();
+}
+
+async function startOnline(action, token, data) {
+  if (busy) return;
+  busy = true;
+  errorMessage();
+  render();
+  if (action === 'friend' || action === 'quick' || action === 'join') sessionSave({ action, token, data });
+  try {
+    const state = await request(action, token, data);
+    applyOnline(state, token);
+    if (inviteArgs.has('game')) history.replaceState(null, '', location.pathname + location.search);
+    schedulePoll();
+  } catch (error) {
+    if (online) sessionSave({ id: online.id, token: online.token });
+    else if (error.status === 404) sessionSave(null);
+    errorMessage(error.message || 'Could not connect to online play.');
+  } finally {
+    busy = false;
+    render();
+  }
+}
+
+async function updateOnline(action, data = {}) {
+  if (!online || busy) return;
+  const { token, id } = online;
+  busy = true;
+  errorMessage();
+  render();
+  try {
+    const state = await request(action, token, { id, ...data });
+    if (state.canceled) resetOnline();
+    else applyOnline(state, token);
+  } catch (error) {
+    if (error.game) applyOnline(error.game, token);
+    errorMessage(error.message || 'Could not connect to online play.');
+  } finally {
+    busy = false;
+    render();
+    schedulePoll();
+  }
+}
+
+for (const action of ['friend', 'quick']) {
+  get(action).addEventListener('click', () => {
+    const pendingSession = sessionRead();
+    startOnline(action, pendingSession?.action === action ? pendingSession.token : randomKey());
+  });
+}
+get('copy-link').addEventListener('click', async () => {
+  const link = get('invite-link');
+  try {
+    await navigator.clipboard.writeText(link.value);
+    get('room-info').textContent = 'Invite link copied. You play White.';
+  } catch {
+    link.focus();
+    link.select();
+    errorMessage('Copy the selected invite link to share it.');
+  }
+});
+get('exit-online').addEventListener('click', () => {
+  if (!online || busy) return;
+  if (online.resigned || game.isGameOver()) resetOnline();
+  else if (!online.ready) updateOnline('cancel');
+  else {
+    leave.returnValue = 'cancel';
+    leave.showModal();
+  }
+});
+leave.addEventListener('close', () => {
+  if (leave.returnValue === 'resign') updateOnline('resign', { version: online.version });
+});
+
 get('open-tutorial').addEventListener('click', () => get('tutorial').showModal());
 get('show-result').addEventListener('click', showResult);
 get('tutorial').addEventListener('close', () => {
   if (outcome && observedResult !== outcome.key) showResult();
 });
-get('again-local').addEventListener('click', () => {
-  resultDialog.close();
-  game.reset();
-  selected = null;
-  save();
-  render();
-});
+for (const [id, action] of [['again-quick', 'quick'], ['again-friend', 'friend']]) {
+  get(id).addEventListener('click', () => {
+    if (!outcome || busy) return;
+    resultDialog.close();
+    startOnline(action, randomKey());
+  });
+}
 get('review-game').addEventListener('click', () => {
   if (!outcome?.moves.length) return;
   resultDialog.close();
@@ -270,3 +485,13 @@ get('review-game').addEventListener('click', () => {
 
 orient();
 render();
+const savedSession = sessionRead();
+const inviteId = inviteArgs.get('game');
+if (inviteId && savedSession?.id !== inviteId) {
+  const token = savedSession?.action === 'join' && savedSession.data?.id === inviteId ? savedSession.token : randomKey();
+  startOnline('join', token, { id: inviteId, invite: inviteArgs.get('invite') });
+} else if (savedSession?.id) {
+  startOnline('state', savedSession.token, { id: savedSession.id });
+} else if (savedSession?.action) {
+  startOnline(savedSession.action, savedSession.token, savedSession.data);
+}

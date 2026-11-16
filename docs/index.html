@@ -17,13 +17,24 @@
 </section>
 <aside class="panel">
 <div class="intro"><h1>Play chess</h1><p id="mode-label">Two players, one board.</p></div>
+<div id="online-actions" class="online-actions">
+  <button id="friend">Play a friend</button>
+  <button id="quick" class="primary">Quick match</button>
+</div>
+<section id="online-room" hidden aria-label="Online match">
+  <p id="room-info" role="status"></p>
+  <div id="invite-controls" hidden><input id="invite-link" readonly aria-label="Friend invite link"><button id="copy-link">Copy link</button></div>
+  <button id="exit-online">Back to local chess</button>
+</section>
+<p id="online-error" role="alert" hidden></p>
 <div class="turn" role="status"><i id="indicator"></i><div><strong id="status"></strong><small id="detail"></small></div></div>
 <section class="history"><h2>Moves <span id="count">0</span></h2><div id="moves" class="moves"></div></section>
 <div class="controls"><button id="undo">Undo move</button><button id="flip">Flip board</button><button id="new" class="primary">New game</button><button id="show-result" hidden>Game result</button></div>
 </aside>
 </main>
-<footer>Piece artwork by <a href="https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces/Standard_transparent">Colin M. L. Burnett</a> · <a href="pieces/LICENSE.txt">GPL v2+</a></footer>
+<footer><a href="https://ouru-chess-api.mmo0216.chatgpt.site/">Developer API</a> · Piece artwork by <a href="https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces/Standard_transparent">Colin M. L. Burnett</a> · <a href="pieces/LICENSE.txt">GPL v2+</a></footer>
 <dialog id="promotion"><form method="dialog"><h2>Promote pawn</h2><div id="choices"></div><button value="cancel">Cancel</button></form></dialog>
+<dialog id="leave"><form method="dialog"><h2>Resign this game?</h2><p>Your opponent will win the match.</p><div class="dialog-actions"><button value="cancel">Keep playing</button><button class="primary" value="resign">Resign</button></div></form></dialog>
 <dialog id="restart"><form method="dialog"><h2>Start a new game?</h2><p>This clears the current board and move history.</p><div class="dialog-actions"><button value="cancel">Cancel</button><button class="primary" value="reset">New game</button></div></form></dialog>
 <dialog id="tutorial" aria-labelledby="tutorial-title">
   <div class="tutorial-head">
@@ -64,7 +75,8 @@
   <h2 id="result-title"></h2>
   <p id="result-reason"></p>
   <div class="result-actions">
-    <button id="again-local" class="primary">Play Again</button>
+    <button id="again-quick" class="primary">Play Again (Quick Match)</button>
+    <button id="again-friend">Play Again (Create Friend Room)</button>
     <button id="review-game">Review Game</button>
   </div>
   <form method="dialog"><button type="submit">Close</button></form>
@@ -86,6 +98,9 @@
     <button id="review-prev" aria-label="Previous move">Previous</button>
     <button id="review-next" aria-label="Next move">Next</button>
   </div>
+  <button id="review-submit" class="primary">Get Chessigma report</button>
+  <p id="review-status" role="status"></p>
+  <a id="review-link" rel="noopener noreferrer" target="_blank" hidden></a>
   <p class="engine-credit">Powered by Stockfish · <a href="https://github.com/nmrugg/stockfish.js/tree/v19.0.1">Source</a> · <a href="engine/LICENSE.txt">GPL v3</a></p>
 </dialog>
 <script type="module" src="app.js"></script>

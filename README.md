@@ -1,12 +1,12 @@
 # Ouru Chess
 
-Play local two-player chess with illustrated pieces, a beginner’s guide, and Stockfish game review.
+Play chess locally, create an invite room, or join Quick Match. The site also includes an illustrated tutorial and Stockfish move grades.
 
 ## Publish on GitHub Pages
 
-Open **Settings → Pages**. Under **Build and deployment**, choose **Deploy from a branch**, select **main** and **/docs**, then click **Save**.
+Open **Settings → Pages**. Choose **Deploy from a branch**, select **main** and **/docs**, then click **Save**.
 
-GitHub Pages serves the browser version. Local play, the tutorial, and Stockfish review run in the browser. Quick Match, friend rooms, and Chessigma report submission use the Ouru Chess server and are disabled in the Pages version.
+The site and custom apps use the same public matchmaking backend. See the [API documentation](https://ouru-chess-api.mmo0216.chatgpt.site/) for endpoints, example code, room invites, and move grading in your own client.
 
 ## Run locally
 

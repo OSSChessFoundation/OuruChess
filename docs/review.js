@@ -1,3 +1,4 @@
+import { apiBase } from './api.js';
 import { Chess } from './chess.js';
 import { gradeGame } from './grading.js';
 
@@ -7,10 +8,12 @@ const kinds = { p: 'pawn', n: 'knight', b: 'bishop', r: 'rook', q: 'queen', k: '
 export function createGameReview() {
   const dialog = $('review-dialog');
   const arrow = $('review-arrow');
+  const report = $('review-link');
   const bestArrow = $('review-best-arrow');
   const bestButton = $('review-best');
   let replay;
   let ply = 0;
+  let revision = 0;
   let grades = [];
   let stopGrading;
   let gradeKey;
@@ -91,8 +94,44 @@ export function createGameReview() {
   $('review-next').addEventListener('click', () => { ply++; showBest = false; render(); });
   bestButton.addEventListener('click', () => { showBest = !showBest; render(); });
   dialog.addEventListener('close', () => stopGrading?.());
+  $('review-submit').addEventListener('click', async () => {
+    const current = revision;
+    $('review-submit').disabled = true;
+    $('review-status').textContent = 'Preparing the Chessigma report…';
+    report.hidden = true;
+    const game = new Chess(replay.moves[0].before);
+    for (const move of replay.moves) game.move(move.san);
+    game.setHeader('Result', replay.result);
+    const pgn = game.pgn();
+    try {
+      const response = await fetch(apiBase + 'review', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pgn }), signal: AbortSignal.timeout(10_000),
+      });
+      if (!response.ok) throw new Error('Review unavailable');
+      const { url } = await response.json();
+      if (current !== revision) return;
+      report.href = url;
+      report.textContent = 'Open Chessigma report ↗';
+      $('review-status').textContent = 'Chessigma grades both players’ moves after the report opens.';
+    } catch {
+      if (current !== revision) return;
+      const fallback = new URL('https://www.chessigma.com/tools/analysis');
+      fallback.searchParams.set('pgn', pgn);
+      report.href = fallback.href;
+      report.textContent = 'Open Chessigma analysis board ↗';
+      $('review-status').textContent = 'The full report is unavailable right now. You can still open the game in Chessigma’s analysis board.';
+    } finally {
+      if (current === revision) {
+        report.hidden = false;
+        $('review-submit').disabled = false;
+      }
+    }
+  });
+
   return {
     open(outcome) {
+      revision++;
       replay = outcome;
       showBest = false;
       analysisError = '';
@@ -102,6 +141,9 @@ export function createGameReview() {
         gradeKey = key;
       }
       ply = 1;
+      $('review-submit').disabled = false;
+      $('review-status').textContent = 'The full report sends this game’s moves to Chessigma.';
+      report.hidden = true;
       render();
       dialog.showModal();
       stopGrading = gradeGame(outcome.moves, grades, renderGrade, message => {
