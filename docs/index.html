@@ -8,17 +8,50 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="mast"><a class="brand" href="./"><img src="pieces/wR.svg" alt="">Ouru Chess</a><nav class="mast-actions" aria-label="Chess tools"><button id="open-analysis" type="button">Analysis Board</button><button id="open-tutorial" type="button">How to play</button></nav></header>
-<main class="layout">
+<header class="mast site-mast">
+<a class="brand" href="./"><img src="pieces/wR.svg" alt="">Ouru<span>Chess</span></a>
+<nav class="main-nav" aria-label="Main navigation">
+<button id="home-nav" aria-current="page">Home</button><button id="play-nav">Play</button><button id="open-puzzles">Puzzles</button>
+</nav>
+<nav class="mast-actions" aria-label="Chess tools">
+<button id="open-analysis" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M7 16V9m5 7V4m5 12v-5"/></svg><span>Analysis</span></button>
+<button id="open-tutorial" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v15M12 5C8 2 3 4 3 4v15s5-2 9 1c4-3 9-1 9-1V4s-5-2-9 1z"/></svg><span>Learn</span></button>
+<button id="open-appearance" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg><span>Appearance</span></button>
+</nav>
+</header>
+<main id="home" class="lobby">
+<section class="home-hero">
+<div class="hero-board-column"><div class="hero-board-frame"><div id="home-board" class="board" aria-hidden="true"></div></div><p class="opening-caption">The Italian Game · A good place to begin.</p></div>
+<div class="hero-play">
+<p class="eyebrow">OURU CHESS</p><h1>Make your<br>next move.</h1>
+<p class="hero-description">Find a match, challenge a friend, or take on a bot. Your board is ready.</p>
+<button id="home-quick" class="hero-action"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 10 7-10 7z"/></svg><span><strong>Play online</strong><small>Join Quick Match</small></span><span aria-hidden="true">→</span></button>
+<button id="home-friend" class="hero-action secondary"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2m2-15a3 3 0 0 1 0 6m4 9v-2a6 6 0 0 0-4-5"/></svg><span><strong>Play a friend</strong><small>Create a private invite room</small></span><span aria-hidden="true">→</span></button>
+<button id="home-bot" class="hero-action secondary"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="14" rx="3"/><path d="M12 7V3m-4 9h.01M16 12h.01M9 17h6"/></svg><span><strong>Play a bot</strong><small>Easy, Medium, or Hard</small></span><span aria-hidden="true">→</span></button>
+<button id="home-local" class="text-button">Two players on this device <span aria-hidden="true">→</span></button>
+</div>
+</section>
+<section class="quick-start" aria-labelledby="quick-start-title">
+<div class="section-heading"><h2 id="quick-start-title">Pick your pace</h2><p>Quick Match pairs players using the same clock.</p></div>
+<div class="time-grid"><button data-quick-clock="3+2"><strong>3 <span>+ 2</span></strong><small>Blitz · 2-second increment</small></button><button data-quick-clock="5+0"><strong>5 <span>+ 0</span></strong><small>Blitz</small></button><button data-quick-clock="10+0"><strong>10 <span>+ 0</span></strong><small>Rapid</small></button><button data-quick-clock="untimed"><strong>∞</strong><small>Untimed</small></button></div>
+</section>
+<section class="home-tools" aria-label="Improve your game">
+<button id="home-puzzles" class="tool-card"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h5a3 3 0 1 1 6 0h5v5a3 3 0 1 0 0 6v5h-5a3 3 0 1 1-6 0H4v-5a3 3 0 1 0 0-6z"/></svg><strong>Find the winning move</strong><span>Practice mates, forks, and promotion.</span><em>Solve puzzles →</em></button>
+<button id="home-analysis" class="tool-card"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M7 16V9m5 7V4m5 12v-5"/></svg><strong>Understand your games</strong><span>Import a PGN and review every move.</span><em>Open analysis →</em></button>
+<button id="home-learn" class="tool-card"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v15M12 5C8 2 3 4 3 4v15s5-2 9 1c4-3 9-1 9-1V4s-5-2-9 1z"/></svg><strong>Start with the basics</strong><span>Learn the pieces, checks, and special moves.</span><em>How to play →</em></button>
+<button id="home-appearance" class="tool-card"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg><strong>Make it your board</strong><span>Choose your pieces or upload a custom set.</span><em>Customize →</em></button>
+</section>
+</main>
+<main id="play-area" class="layout" hidden>
 <section class="table" aria-label="Chess table">
-<div class="player" id="top"></div>
+<div class="player" id="top"></div><div id="material-top" class="material-strip"></div>
 <div class="frame"><div class="board-stage"><div id="board" class="board" aria-label="Chessboard"></div><div id="live-marks" class="board-marks" aria-hidden="true"></div></div></div>
-<div class="player" id="bottom"></div>
+<div id="material-bottom" class="material-strip"></div><div class="player" id="bottom"></div>
 <div class="mark-tools"><button id="draw-live" type="button" aria-pressed="false">Draw arrows</button><button id="clear-live" type="button" disabled>Clear marks</button></div>
 </section>
 <aside class="panel">
 <div class="intro"><h1>Play chess</h1><p id="mode-label">Two players, one board.</p></div>
-<div id="online-actions" class="online-actions">
+<div id="online-actions" class="online-actions"><label class="clock-choice" for="match-clock">Time control<select id="match-clock"><option value="untimed">Untimed</option><option value="3+2">3 min + 2 sec</option><option value="5+0">5 min</option><option value="10+0">10 min</option></select></label>
   <button id="friend">Play a friend</button>
   <button id="quick" class="primary">Quick match</button>
   <button id="bot-open" type="button">Play a bot</button>
@@ -31,8 +64,8 @@
 <p id="online-error" role="alert" hidden></p>
 <div class="turn" role="status"><i id="indicator"></i><div><strong id="status"></strong><small id="detail"></small></div></div>
 <section class="history"><h2>Moves <span id="count">0</span></h2><div id="moves" class="moves"></div></section>
-<div class="controls"><button id="undo">Undo move</button><button id="flip">Flip board</button><button id="new" class="primary">New game</button><button id="bot-exit" type="button" hidden>Back to local chess</button><button id="show-result" hidden>Game result</button></div>
-</aside>
+<div class="controls"><button id="undo">Undo move</button><button id="flip">Flip board</button><button id="new" class="primary">New game</button><button id="bot-exit" type="button" hidden>Back to local chess</button><button id="copy-pgn" type="button">Copy PGN</button><button id="show-result" hidden>Game result</button></div>
+<p id="copy-status" role="status"></p></aside>
 </main>
 <footer><a href="https://chess-api.mmo0216.chatgpt.site/">Developer API</a> · Piece artwork by <a href="https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces/Standard_transparent">Colin M. L. Burnett</a> · <a href="pieces/LICENSE.txt">GPL v2+</a></footer>
 <dialog id="bot-dialog" aria-labelledby="bot-title">
@@ -157,6 +190,21 @@
   </div>
   </div>
 </dialog>
+<dialog id="appearance-dialog" class="full-screen" aria-labelledby="appearance-title">
+<header class="screen-header"><form method="dialog"><button autofocus>← Back</button></form><h2 id="appearance-title">Your board</h2></header>
+<div class="screen-content"><div class="appearance-content">
+<section class="appearance-card"><h3>Piece set</h3><label for="piece-set">Choose your pieces</label><select id="piece-set"><option value="classic">Classic · Cburnett</option><option value="chessnut">Chessnut · Alexis Luengas</option><option value="custom">Your custom set</option></select><div id="appearance-preview" class="appearance-preview" aria-label="Piece set preview"></div><p class="asset-credit">Classic artwork by Colin M. L. Burnett, GPL v2+. Chessnut artwork by Alexis Luengas, <a href="pieces/chessnut/LICENSE.txt">Apache 2.0</a>.</p></section>
+<section class="appearance-card"><h3>Board colors</h3><label for="board-theme">Board theme</label><select id="board-theme"><option value="sage">Sage</option><option value="walnut">Walnut</option><option value="slate">Slate</option></select></section>
+<section class="appearance-card"><h3>Upload a custom set</h3><p>Choose all 12 piece images together. Use PNG, JPG, or WebP, up to 256 KB per image and 2 MB total.</p><p>Name the white pieces <code>wK, wQ, wR, wB, wN, wP</code> and the black pieces <code>bK, bQ, bR, bB, bN, bP</code>, with their file extensions.</p><label class="upload-label" for="piece-upload">Choose 12 images<input id="piece-upload" type="file" accept="image/png,image/jpeg,image/webp" multiple></label><p>Your uploaded pieces and board preferences are saved in this browser.</p><button id="piece-reset" type="button">Remove custom images</button><p id="appearance-message" role="status"></p></section>
+</div></div>
+</dialog>
+<dialog id="puzzles-dialog" class="full-screen" aria-labelledby="puzzle-title">
+<header class="screen-header"><form method="dialog"><button autofocus>← Back</button></form><h2>Puzzles</h2></header>
+<div class="screen-content"><div class="puzzle-layout">
+<div class="puzzle-stage"><div id="puzzle-board" class="board" aria-label="Puzzle board"></div></div>
+<aside class="puzzle-panel"><p id="puzzle-count"></p><h2 id="puzzle-title"></h2><p id="puzzle-theme"></p><p id="puzzle-message" role="status"></p><div class="puzzle-actions"><button id="puzzle-next" class="primary">Next puzzle</button><button id="puzzle-retry">Try again</button><button id="puzzle-solution">Show solution</button></div></aside>
+</div></div></dialog>
+<dialog id="export-dialog" aria-labelledby="export-title"><h2 id="export-title">Copy game PGN</h2><textarea id="export-pgn" rows="8" readonly aria-label="Game PGN"></textarea><form method="dialog"><button>Back</button></form></dialog>
 <script type="module" src="app.js"></script>
 </body>
 </html>

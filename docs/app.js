@@ -3,6 +3,9 @@ import { Chess } from './chess.js';
 import { startEngine } from './grading.js';
 import { createGameReview } from './review.js';
 import { attachBoardMarks } from './board-marks.js';
+import { pieceSource } from './pieces.js';
+import { attachPieceDragging } from './drag-pieces.js';
+import { initEnhancements } from './enhancements.js';
 
 const game = new Chess();
 const names = { p: 'pawn', n: 'knight', b: 'bishop', r: 'rook', q: 'queen', k: 'king' };
@@ -62,7 +65,7 @@ function save() {
 
 function artwork(color, type, className = '') {
   const img = document.createElement('img');
-  img.src = 'pieces/' + color + type.toUpperCase() + '.svg';
+  img.src = pieceSource(color, type);
   img.alt = '';
   img.className = className;
   img.draggable = false;
@@ -287,6 +290,7 @@ function render() {
   const winner = online?.resigned ? (online.resigned === 'w' ? 'b' : 'w')
     : game.isCheckmate() ? (turn === 'w' ? 'b' : 'w') : null;
   renderResult(ended, winner, detail, history);
+  window.dispatchEvent(new Event('ouru-position'));
 }
 
 function showResult() {
@@ -527,7 +531,9 @@ async function updateOnline(action, data = {}) {
 for (const action of ['friend', 'quick']) {
   get(action).addEventListener('click', () => {
     const pendingSession = sessionRead();
-    startOnline(action, pendingSession?.action === action ? pendingSession.token : randomKey());
+    const clock = get('match-clock').value;
+    const reuse = pendingSession?.action === action && (pendingSession.data?.clock ?? 'untimed') === clock;
+    startOnline(action, reuse ? pendingSession.token : randomKey(), { clock });
   });
 }
 get('copy-link').addEventListener('click', async () => {
@@ -616,7 +622,7 @@ for (const [id, action] of [['again-quick', 'quick'], ['again-friend', 'friend']
   get(id).addEventListener('click', () => {
     if (!outcome || busy) return;
     resultDialog.close();
-    startOnline(action, randomKey());
+    startOnline(action, randomKey(), { clock: online?.clock?.preset ?? get('match-clock').value });
   });
 }
 get('review-game').addEventListener('click', () => {
@@ -626,6 +632,18 @@ get('review-game').addEventListener('click', () => {
 });
 
 
+const enhancements = initEnhancements({
+  game, renderBoard: render,
+  snapshot: () => ({ flipped, online: Boolean(online) }),
+});
+attachPieceDragging(board, square => {
+  return !busy && !game.isGameOver() && (!bot || game.turn() === bot.color)
+    && (!online || (online.ready && !online.resigned && online.status !== 'finished' && game.turn() === online.color))
+    && game.get(square)?.color === game.turn();
+}, choose, () => selected);
+get('bot-dialog').addEventListener('close', () => {
+  if (get('bot-dialog').returnValue === 'play') enhancements.showPlay();
+});
 orient();
 render();
 const savedSession = sessionRead();

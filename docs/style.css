@@ -94,3 +94,110 @@ dialog.full-screen[open]{display:flex;flex-direction:column}
 }
 
 body:has(dialog.full-screen[open]){overflow:hidden}
+
+
+/* Lobby and board tools */
+:root{--bg:#171a1b;--panel:#222728;--line:#394142;--text:#f4f1e8;--muted:#b2b9b5;--gold:#d8b777}
+:root[data-board-theme="sage"]{--light:#e5dbc4;--dark:#7b8d75}
+:root[data-board-theme="walnut"]{--light:#edddc6;--dark:#a47c5b}
+:root[data-board-theme="slate"]{--light:#d7e1e5;--dark:#6b8594}
+body{background:var(--bg)}
+.site-mast{max-width:none;height:auto;min-height:76px;padding:14px clamp(16px,4vw,68px);gap:24px;display:flex;background:#1b1f20}
+.site-mast .brand{font-family:Georgia,serif;font-size:26px;letter-spacing:-.5px;gap:7px;white-space:nowrap}
+.site-mast .brand>span{color:var(--gold);margin-left:-7px}
+.site-mast .brand img{height:32px;width:32px;margin-right:2px}
+.main-nav{display:flex;gap:4px;margin-right:auto}
+.main-nav button,.site-mast .mast-actions button{color:var(--muted);border:0;background:transparent;font-size:14px;min-height:38px;padding:8px 11px;border-radius:6px;display:flex;align-items:center;gap:6px}
+.main-nav button[aria-current="page"],.main-nav button:hover,.site-mast .mast-actions button:hover{color:var(--text);background:#2b3233}
+.site-mast .mast-actions{gap:3px}
+.site-mast svg{width:17px;height:17px}
+.lobby{width:min(1120px,calc(100% - 48px));margin:0 auto}
+.home-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,.88fr);gap:clamp(32px,6vw,86px);align-items:center;padding:54px 0 36px}
+.hero-board-column{min-width:0;padding:6px}
+.hero-board-frame{border:9px solid #303939;border-radius:9px;box-shadow:0 18px 44px #0005;overflow:hidden;transform:rotate(-1deg)}
+.hero-board-frame .board{border-radius:2px}
+.opening-caption{text-align:center;color:var(--muted);font-size:12px;margin:18px 0 0}
+.eyebrow{font-size:11px;letter-spacing:.2em;color:var(--gold);font-weight:700;margin:0 0 13px}
+.hero-play h1{font:500 clamp(45px,5.8vw,75px)/1.04 Georgia,serif;letter-spacing:-.05em;margin:0 0 17px}
+.hero-description{font-size:16px;line-height:1.65;color:var(--muted);max-width:360px;margin:0 0 24px}
+.hero-action{width:100%;min-height:69px;display:flex;align-items:center;gap:14px;background:var(--gold);border:1px solid var(--gold);border-radius:9px;color:#211d14;padding:11px 18px;text-align:left;margin-bottom:10px}
+.hero-action.secondary{background:#282f30;border-color:#414a4a;color:var(--text)}
+.hero-action>svg{width:26px;height:26px;flex:none}
+.hero-action>span:last-child{margin-left:auto;font-size:23px}
+.hero-action strong{display:block;font-size:17px}
+.hero-action small{display:block;font-size:12px;opacity:.78;margin-top:2px}
+.hero-action:hover{filter:brightness(1.08)}
+.text-button{border:0;background:none;color:var(--muted);font-size:12px;margin:5px auto 0;display:block;padding:8px}
+.text-button:hover{color:var(--text)}
+.quick-start{border-top:1px solid var(--line);padding:27px 0 28px}
+.section-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:15px}
+.section-heading h2{font:500 25px Georgia,serif;letter-spacing:-.03em;margin:0}
+.section-heading p{font-size:12px;color:var(--muted);margin:0}
+.time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.time-grid button{background:#222829;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:18px 8px}
+.time-grid strong{display:block;font-size:27px;font-weight:600;letter-spacing:-1px}
+.time-grid strong span{color:var(--muted);font-size:21px}
+.time-grid small{display:block;margin-top:4px;color:var(--muted);font-size:12px}
+.time-grid button:hover{border-color:var(--gold);background:#2b3130}
+.home-tools{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;padding:8px 0 35px}
+.tool-card{border:1px solid var(--line);background:transparent;color:var(--text);padding:20px 18px;border-radius:8px;text-align:left}
+.tool-card svg{display:block;width:24px;height:24px;color:var(--gold);margin-bottom:15px}
+.tool-card strong{display:block;font-size:15px;line-height:1.35;margin-bottom:8px}
+.tool-card>span{display:block;color:var(--muted);font-size:12px;line-height:1.65}
+.tool-card em{display:block;color:var(--gold);font-size:12px;font-style:normal;margin-top:18px}
+.tool-card:hover{background:#222829}
+.layout{margin-top:28px}
+.material-strip{min-height:24px;padding:1px 5px}
+.material-content{display:flex;align-items:center;gap:0;min-height:22px}
+.material-content img{height:22px;width:22px;object-fit:contain;margin-right:-6px}
+.material-content span{color:var(--gold);font-size:12px;font-weight:700;margin-left:14px}
+#board .square{touch-action:none}
+.drag-source .piece{opacity:.3}
+.drag-piece{position:fixed;height:auto;aspect-ratio:1;pointer-events:none;z-index:10000;transform:translate(-50%,-50%);filter:drop-shadow(0 5px 4px #0006)}
+.clock-choice{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px}
+.clock-choice select{background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:5px;padding:6px}
+#copy-status{color:var(--gold);font-size:12px;min-height:1em}
+dialog.full-screen#appearance-dialog,dialog.full-screen#puzzles-dialog{position:fixed;inset:0;margin:0;width:100vw;height:100dvh;max-width:none;max-height:none;padding:0;border:0;border-radius:0;background:var(--bg);overflow:hidden}
+.appearance-content{max-width:780px;padding:24px 18px 42px;margin:auto}
+.appearance-card{padding:20px 24px;border:1px solid var(--line);background:var(--panel);border-radius:10px;margin-bottom:15px}
+.appearance-card h3{margin:0 0 14px;font:500 25px Georgia,serif}
+.appearance-card p{font-size:13px;line-height:1.6}
+.appearance-card select{display:block;width:100%;margin:8px 0;padding:9px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:5px}
+.appearance-preview{display:flex;justify-content:space-around;background:var(--light);border-radius:7px;margin:15px 0;padding:12px}
+.appearance-preview img{width:15%;max-width:70px;aspect-ratio:1}
+.upload-label{display:block;font-size:14px}
+.upload-label input{display:block;margin:8px 0;max-width:100%}
+#appearance-message{color:var(--gold)}
+.puzzle-layout{width:min(1080px,100%);padding:22px clamp(12px,3vw,24px);display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:28px;margin:auto;align-items:start}
+.puzzle-stage{width:min(100%,calc(100dvh - 130px));justify-self:center;border:7px solid #303939;border-radius:7px;overflow:hidden}
+.puzzle-panel{border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:20px}
+.puzzle-panel h2{font:500 29px/1.1 Georgia,serif;letter-spacing:-.03em}
+#puzzle-count{font-size:12px;color:var(--gold)}
+#puzzle-theme{color:var(--muted)}
+#puzzle-message{font-size:14px;line-height:1.6}
+.puzzle-actions{display:grid;gap:8px;margin-top:18px}
+#export-pgn{display:block;width:100%;min-width:min(400px,70vw);margin:14px 0;background:var(--bg);color:var(--text);padding:8px}
+#export-dialog{width:min(500px,calc(100% - 24px))}
+footer{border-top:1px solid var(--line);padding:25px 15px;color:#9da8a2}
+@media(max-width:950px){
+ .site-mast{gap:12px;flex-wrap:wrap;padding:12px 20px}
+ .home-hero{gap:30px;grid-template-columns:minmax(0,1fr) minmax(290px,.9fr);padding-top:32px}
+ .home-tools{grid-template-columns:repeat(2,1fr)}
+ .site-mast .mast-actions button{font-size:12px;padding:7px}
+}
+@media(max-width:650px){
+ .lobby{width:calc(100% - 28px)}
+ .home-hero{grid-template-columns:1fr;gap:20px;padding:28px 0}
+ .hero-board-column{max-width:390px;width:80%;margin:auto;order:2}
+ .hero-play h1{font-size:49px}.hero-play h1 br{display:none}
+ .hero-description{max-width:none;font-size:14px;margin-bottom:18px}
+ .section-heading{display:block}.section-heading p{margin-top:7px}
+ .time-grid{grid-template-columns:repeat(2,1fr);gap:9px}
+ .home-tools{gap:10px}.tool-card{padding:16px 13px}
+ .site-mast .brand{font-size:23px}.site-mast .mast-actions{margin-left:0;justify-content:flex-end;flex:1}
+ .site-mast .mast-actions span{display:none}.site-mast .mast-actions svg{width:19px;height:19px}
+ .main-nav button{font-size:12px;padding:7px}.main-nav{gap:0}
+ .puzzle-layout{grid-template-columns:1fr;max-width:540px;gap:15px}
+ .puzzle-stage{width:100%}.puzzle-actions{grid-template-columns:1fr 1fr}.puzzle-actions .primary{grid-column:1/-1}
+ .appearance-card{padding:17px}
+}

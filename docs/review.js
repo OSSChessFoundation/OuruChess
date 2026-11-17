@@ -1,5 +1,6 @@
 import { apiBase } from './api.js';
 import { Chess } from './chess.js';
+import { pieceSource } from './pieces.js';
 import { gradeGame } from './grading.js';
 import { attachBoardMarks, positionArrow, squareAtIndex } from './board-marks.js';
 
@@ -86,7 +87,7 @@ export function createGameReview() {
       if (piece) {
         const image = document.createElement('img');
         image.className = 'piece';
-        image.src = 'pieces/' + piece.color + piece.type.toUpperCase() + '.svg';
+        image.src = pieceSource(piece.color, piece.type);
         image.alt = variation ? '' : (piece.color === 'w' ? 'White ' : 'Black ') + kinds[piece.type] + ' on ' + square;
         cell.append(image);
       }
